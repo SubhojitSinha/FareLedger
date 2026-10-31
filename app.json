@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "FareLedger",
+    "slug": "fareledger",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "fareledger",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.fareledger.app"
+    },
+    "android": {
+      "package": "com.fareledger.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A7F60"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-font",
+      "@react-native-community/datetimepicker",
+      "expo-sharing",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow FareLedger to use Face ID to unlock the app."
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "imageWidth": 240,
+          "backgroundColor": "#FFFFFF",
+          "resizeMode": "contain",
+          "dark": {
+            "image": "./assets/splash-dark.png",
+            "backgroundColor": "#0F1419"
+          }
+        }
+      ]
+    ],
+    "icon": "./assets/icon.png"
+  }
+}
