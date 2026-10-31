@@ -24,7 +24,7 @@ import { calculate, type ExpenseType } from '../domain/calc';
 import { Btn, Card, DateTimeField, Field, SectionTitle, StepHeader, SummaryRow, Typeahead } from './ui';
 import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 import SettlementView from './SettlementView';
-import { colors, fmt, num, space } from '../theme';
+import { colors, fmt, num, priceLabel, space } from '../theme';
 import { useTheme } from '../ThemeContext';
 
 type TicketRow = { price: number; issued: string; returned: string };
@@ -158,9 +158,9 @@ export default function EntryForm({ entryId }: { entryId?: number }) {
       for (const t of tickets) {
         const issued = num(t.issued);
         const returned = num(t.returned);
-        if (!Number.isInteger(issued) || !Number.isInteger(returned)) return `₹${t.price}: counts must be whole numbers.`;
-        if (issued < 0 || returned < 0) return `₹${t.price}: counts can't be negative.`;
-        if (returned > issued) return `₹${t.price}: returned is more than issued.`;
+        if (!Number.isInteger(issued) || !Number.isInteger(returned)) return `${priceLabel(t.price)}: counts must be whole numbers.`;
+        if (issued < 0 || returned < 0) return `${priceLabel(t.price)}: counts can't be negative.`;
+        if (returned > issued) return `${priceLabel(t.price)}: returned is more than issued.`;
       }
     }
     if (i === 2) {
@@ -313,7 +313,7 @@ export default function EntryForm({ entryId }: { entryId?: number }) {
                   <View key={t.price} style={{ marginBottom: space.lg }}>
                     <View style={{ flexDirection: 'row', gap: space.sm, alignItems: 'flex-end' }}>
                       <Text style={{ width: 56, fontSize: 20, fontWeight: '700', color: colors.text, paddingBottom: 12 }}>
-                        ₹{t.price}
+                        {priceLabel(t.price)}
                       </Text>
                       <Field
                         label="Issued"

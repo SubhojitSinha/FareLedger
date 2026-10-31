@@ -15,18 +15,20 @@ import {
   type Head,
   type Price,
 } from '../../src/db/repo';
-import { Btn, Card, Field, SectionTitle } from '../../src/components/ui';
+import { Btn, Card, Field, SectionTitle, SelectModal } from '../../src/components/ui';
 import { useKeyboardHeight } from '../../src/hooks/useKeyboardHeight';
 import { useTheme } from '../../src/ThemeContext';
 import { useLock } from '../../src/LockContext';
 import { countEntries, exportBackup, pickBackup, restoreBackup } from '../../src/db/backup';
 import type { ThemePref } from '../../src/theme';
-import { colors, num, space } from '../../src/theme';
+import { CURRENCIES, colors, num, priceLabel, space } from '../../src/theme';
 
 export default function Settings() {
   const db = useSQLiteContext();
   const kb = useKeyboardHeight();
-  const { pref, setPref } = useTheme();
+  const { pref, setPref, currencyCode, setCurrencyCode } = useTheme();
+  const [pickingCurrency, setPickingCurrency] = useState(false);
+  const current = CURRENCIES.find((c) => c.code === currencyCode) ?? CURRENCIES[0];
   const router = useRouter();
   const lock = useLock();
   const [busy, setBusy] = useState(false);
@@ -160,6 +162,21 @@ export default function Settings() {
         </Text>
       </Card>
 
+      <SectionTitle>Currency</SectionTitle>
+      <Pressable onPress={() => setPickingCurrency(true)}>
+        <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1, paddingRight: space.md }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+              {current.symbol.trim()}  {current.name} ({current.code})
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>
+              Only changes how amounts are shown. Saved entries are not converted.
+            </Text>
+          </View>
+          <Text style={{ color: colors.primary, fontWeight: '600' }}>Change</Text>
+        </Card>
+      </Pressable>
+
       <SectionTitle>Security</SectionTitle>
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -229,7 +246,7 @@ export default function Settings() {
         {prices.map((p) => (
           <Row
             key={p.id}
-            label={`₹${p.value}`}
+            label={priceLabel(p.value)}
             sub={p.active ? 'In use' : 'Hidden from new entries'}
             value={!!p.active}
             onChange={async (v) => {
@@ -299,6 +316,17 @@ export default function Settings() {
         <Btn label="Export backup" onPress={onExport} disabled={busy} />
         <Btn label="Import backup" variant="ghost" onPress={onImport} disabled={busy} style={{ marginTop: space.sm }} />
       </Card>
+
+      <SelectModal
+        visible={pickingCurrency}
+        title="Select currency"
+        items={CURRENCIES.map((c, i) => ({ id: i, name: `${c.symbol.trim()}  ${c.name} (${c.code})` }))}
+        onClose={() => setPickingCurrency(false)}
+        onSelect={(item) => {
+          setCurrencyCode(CURRENCIES[item.id].code);
+          setPickingCurrency(false);
+        }}
+      />
     </ScrollView>
   );
 }

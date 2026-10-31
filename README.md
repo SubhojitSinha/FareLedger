@@ -17,6 +17,8 @@ Built with Expo (React Native) and TypeScript.
 - [Screens](#screens)
 - [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
+- [First run and defaults](#first-run-and-defaults)
+- [Currency](#currency)
 - [Project structure](#project-structure)
 - [Data model](#data-model)
 - [Backup and restore](#backup-and-restore)
@@ -24,7 +26,9 @@ Built with Expo (React Native) and TypeScript.
 - [Theming](#theming)
 - [Testing](#testing)
 - [Building a release](#building-a-release)
+- [Troubleshooting](#troubleshooting)
 - [Roadmap](#roadmap)
+- [License](#license)
 
 ---
 
@@ -32,7 +36,7 @@ Built with Expo (React Native) and TypeScript.
 
 **Daily entry (4-step wizard)**
 - **Crew:** date and time (native calendar and clock pickers), plus bus, driver and conductor. Each is a type-to-search box on the same screen, with a "+ Create" option when there is no match. A bus shows its owner once selected.
-- **Tickets:** every active ticket value (for example ₹10, ₹15, ₹18) starts with a bundle of 100 issued. Enter the returned count; sold and amount update live. The issued count can be edited per entry.
+- **Tickets:** every active ticket value (for example 10, 15, 18) starts with a bundle of 100 issued. Enter the returned count; sold and amount update live. The issued count can be edited per entry.
 - **Expenses:** any number of rows, each with a head (Fine, Spot Fine, Return Tickets, Diesel and your own), an amount and a note. Adding a row puts the cursor straight into its Head field.
 - **Settlement:** the Driver and Conductor shares appear as large coloured cards, followed by the owner's cut, entry details, tickets, expenses and the collection summary.
 - Back and Next on every step, validation before moving on, and an early warning if the bus already has an entry for that date.
@@ -54,6 +58,7 @@ Built with Expo (React Native) and TypeScript.
 
 **Settings**
 - Appearance: System, Light or Dark.
+- Currency: choose the symbol shown for all amounts (default USD, with INR, EUR, GBP and many more). It only changes how amounts are displayed; saved entries are not converted.
 - Security: PIN lock with optional fingerprint or face unlock.
 - People: list, add, rename and hide buses, drivers and conductors, and set a bus owner.
 - Ticket values, expense heads, driver and conductor percentages, and the default issue count.
@@ -80,12 +85,12 @@ Worked example (from the original paper sheet):
 
 | Ticket | Returned | Sold | Amount |
 |---|---|---|---|
-| ₹10 | 20 | 80 | 800.00 |
-| ₹15 | 10 | 90 | 1,350.00 |
-| ₹18 | 10 | 90 | 1,620.00 |
+| 10 | 20 | 80 | 800.00 |
+| 15 | 10 | 90 | 1,350.00 |
+| 18 | 10 | 90 | 1,620.00 |
 | **Gross** | | | **3,770.00** |
 
-With ₹220.00 of expenses: net 3,550.00, driver 532.50, conductor 319.50, owner 2,698.00.
+With 220.00 of expenses: net 3,550.00, driver 532.50, conductor 319.50, owner 2,698.00.
 
 The calculation lives in [`src/domain/calc.ts`](src/domain/calc.ts).
 
@@ -98,7 +103,7 @@ The calculation lives in [`src/domain/calc.ts`](src/domain/calc.ts).
 | **Daily** | Today's entries, summary card, floating **+** button |
 | **Reports** | Totals and breakdowns for a period or custom range |
 | **Statements** | Bus, driver and conductor statements as tiles |
-| **Settings** | Appearance, security, people, prices, heads, rates, backup |
+| **Settings** | Appearance, currency, security, people, prices, heads, rates, backup |
 | New / edit entry | The 4-step wizard |
 | Settlement preview | Read-only settlement for a saved entry |
 | Manage people | Buses, drivers and conductors |
@@ -124,7 +129,7 @@ There is no backend and no account. The app does not use the network.
 
 ## Getting started
 
-Requirements: **Node 22 or newer** and a phone with **Expo Go** (or an emulator or simulator).
+Requirements: **Node 22.18 or newer** (the tests run TypeScript directly) and a phone with **Expo Go** (or an emulator or simulator). The Expo Go app must support the project's SDK (58).
 
 ```bash
 npm install
@@ -145,6 +150,38 @@ npm test            # unit tests for the calculation
 `.npmrc` sets `legacy-peer-deps=true` for this project. Without it `npm install` fails on an optional React peer conflict.
 
 Expo Go always shows its own icon and splash screen. To see FareLedger's icon, splash and Face ID, use a development build.
+
+---
+
+## First run and defaults
+
+On first launch the database is created and seeded with:
+
+| Setting | Default |
+|---|---|
+| Ticket values | 10, 15, 18 (change them in Settings) |
+| Expense heads | Fine, Spot Fine, Return Tickets (fixed) and Diesel |
+| Driver share | 15% |
+| Conductor share | 9% |
+| Default issue count | 100 per ticket value |
+| Currency | USD |
+| Theme | System |
+| App lock | Off |
+
+Typical flow: open **Settings** and set the currency, ticket values and percentages, then tap the floating **+** on the Daily tab. Buses, drivers and conductors are created while you fill in the first entry, and can be edited later under Settings → People.
+
+Fixed expense heads cannot be removed. Your own heads can be hidden and shown again. Retiring a ticket value hides it from new entries only; old entries keep their prices.
+
+---
+
+## Currency
+
+Settings → Currency sets the symbol used for every amount and ticket price. The default is **USD ($)**. Available: USD, EUR, GBP, INR, BDT, NPR, LKR, PKR, AED, SAR, AUD, CAD, SGD, MYR, IDR, PHP, THB, JPY, CNY, ZAR, NGN, KES, BRL and MXN.
+
+- Amounts always show two decimals, with the sign in front of the symbol (`-$5.00`).
+- INR, BDT, NPR, LKR and PKR group digits the South Asian way (1,00,000); the others use 1,000,000.
+- The currency only changes how numbers are displayed. Nothing is converted, so switch it back if you chose the wrong one. The choice is saved with the other settings and included in backups.
+- To add a currency, add an entry to `CURRENCIES` in [`src/theme.ts`](src/theme.ts).
 
 ---
 
@@ -185,7 +222,7 @@ drivers          id, name (unique), active
 conductors       id, name (unique), active
 ticket_prices    id, value (unique), active
 expense_heads    id, name (unique), type (deduction | addition), is_system, active
-settings         key, value
+settings         key, value                                       -- see below
 
 daily_entries    id, entry_date, entry_time, bus_id, driver_id, conductor_id,
                  driver_pct, conductor_pct,                       -- snapshot at save time
@@ -196,6 +233,18 @@ entry_expenses   entry_id, head_id, head_name, type, amount, note
 ```
 
 Buses, drivers, conductors, prices and heads are hidden (not deleted) when retired, so past entries keep their references.
+
+Keys used in `settings`:
+
+| Key | Meaning |
+|---|---|
+| `driver_pct`, `conductor_pct` | Wage percentages for new entries |
+| `default_issue_count` | Tickets issued per value for new entries |
+| `currency` | Currency code, for example `USD` |
+| `theme` | `system`, `light` or `dark` |
+| `app_lock`, `lock_biometric` | Lock switches (kept on the device, never exported) |
+
+The 4-digit PIN is not in the database. It lives in the phone's secure store.
 
 ---
 
@@ -247,9 +296,29 @@ npx eas-cli build --platform android --profile production
 
 ---
 
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `npm install` fails with a peer dependency error | Make sure `.npmrc` (with `legacy-peer-deps=true`) is present, then reinstall |
+| Expo Go says the project is incompatible | Expo Go and the project must use the same SDK. Update Expo Go, or run `npx expo install --fix` |
+| "Port 8081 is running this app in another window" | An earlier server is still running. Stop it with `Ctrl+C` in its terminal, or accept the next port |
+| Changes do not appear after updating dependencies | Restart with `npx expo start --clear` |
+| The phone cannot connect | Use the same Wi-Fi as the computer, or run `npx expo start --tunnel` |
+| Forgot the PIN | Use "Forgot PIN?" on the lock screen. The phone's own screen lock lets you set a new one |
+| Moved to a new phone | Export a backup on the old phone, import it on the new one, then set the lock again. Lock settings are not exported |
+
+---
+
 ## Roadmap
 
 - Automatic backup reminders and CSV export of statements
 - Encrypted backups
 - Optional hide-on-app-switcher privacy screen
 - Multi-device sync (would need a backend)
+
+---
+
+## License
+
+No license has been chosen yet. Until one is added, all rights are reserved by the author.

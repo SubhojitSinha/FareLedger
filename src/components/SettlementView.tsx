@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import type { Settlement } from '../domain/calc';
 import { AmountText, Card, SectionTitle, SummaryRow } from './ui';
-import { colors, fmt, space } from '../theme';
+import { colors, fmt, priceLabel, space } from '../theme';
 
 export type SettlementExpense = {
   key: string;
@@ -63,7 +63,7 @@ export default function SettlementView({ data }: { data: SettlementData }) {
       <SectionTitle>Tickets</SectionTitle>
       <Card>
         {result.tickets.map((t) => (
-          <SummaryRow key={t.price} label={`₹${t.price} × ${t.sold} sold (${t.returned} returned)`} value={fmt(t.amount)} />
+          <SummaryRow key={t.price} label={`${priceLabel(t.price)} × ${t.sold} sold (${t.returned} returned)`} value={fmt(t.amount)} />
         ))}
         <SummaryRow label="Gross collection" value={fmt(result.gross)} bold />
       </Card>
